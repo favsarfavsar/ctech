@@ -1,18 +1,22 @@
 package com.cookerytech.service;
 
-import com.cookerytech.domain.*;
+import com.cookerytech.domain.Offer;
+import com.cookerytech.domain.OfferItem;
+import com.cookerytech.domain.Role;
+import com.cookerytech.domain.enums.RoleType;
 import com.cookerytech.dto.OfferItemDTO;
 import com.cookerytech.dto.request.OfferItemsUpdate;
 import com.cookerytech.exception.BadRequestException;
 import com.cookerytech.exception.ResourceNotFoundException;
 import com.cookerytech.exception.message.ErrorMessage;
 import com.cookerytech.mapper.OfferItemMapper;
+import com.cookerytech.mapper.OfferMapper;
 import com.cookerytech.repository.OfferItemRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class OfferItemService {
@@ -35,7 +39,8 @@ public class OfferItemService {
 
 
     public List<OfferItem> getOfferItems(Long offerId) {
-        List<OfferItem> offerItems = offerItemRepository.getByOfferItemByOfferId(offerId);
+
+        List<OfferItem> offerItems = offerItemRepository.findByOfferId(offerId);
         return offerItems;
     }
 
@@ -59,10 +64,11 @@ public class OfferItemService {
 
     }
 
-    public OfferItemDTO updateOfferItems(Long id, OfferItemsUpdate offerItemsUpdate) {
+    public List<OfferItemDTO> updateOfferItems(Long id, OfferItemsUpdate offerItemsUpdate) {
 
-        OfferItem offerItem = getOfferItem(id);
+        OfferItem offerItem = new OfferItem();
         Offer offer = new Offer();
+        List<OfferItem> offerItemList = getOfferItems(id);
 
         if((offer.getStatus().name().equals("CREATED") || offer.getStatus().name().equals("REJECTED"))){
 
@@ -71,17 +77,13 @@ public class OfferItemService {
             offerItem.setTax(offerItemsUpdate.getTax());
             offerItem.setDiscount(offerItemsUpdate.getDiscount());
 
-            offerItem.setSubTotal(offerItemsUpdate.getPrice() * offerItemsUpdate.getDiscount() * (1 + offerItemsUpdate.getTax() / 100));
-
         }else {
             throw new BadRequestException(ErrorMessage.NOT_PERMITTED_METHOD_MESSAGE);
         }
 
-        OfferItem updateOfferItem = offerItemRepository.save(offerItem);
+        List<OfferItemDTO> offerItemDTOs = offerItemMapper.map(offerItemList);
 
-        OfferItemDTO offerItemDTO = offerItemMapper.OfferItemToOfferItemDTO(updateOfferItem);
-
-        return offerItemDTO;
+        return offerItemDTOs;
 
     }
 
@@ -105,47 +107,8 @@ public class OfferItemService {
 
     public OfferItem getOfferItem(Long id) {
         OfferItem offerItem = offerItemRepository.findById(id).orElseThrow(()->
-                new ResourceNotFoundException(String.format(ErrorMessage.RESOURCE_NOT_FOUND_EXCEPTION,id))
+                new ResourceNotFoundException(String.format(ErrorMessage.RESOURCE_NOT_FOUND_EXCEPTION))
         );
         return offerItem;
-    }
-
-
-    public OfferItem offerItemsCreate(Cart_Items cartItems, Offer offer) {
-
-
-        Double profitRate =3.5; //productService.getBrandByProductId(productId);
-        Integer quantity = cartItems.getAmount();
-        Double sellPrice = calculateSellPrice(cartItems.getModel().getBuyingPrice(), profitRate);
-        Double subTotal = calculateSubTotal(sellPrice, quantity, cartItems.getModel().getTaxRate());
-
-        OfferItem offerItem = new OfferItem();
-        offerItem.setUpdateAt(LocalDateTime.now());
-        offerItem.setCreateAt(LocalDateTime.now());
-        offerItem.setModel(cartItems.getModel());
-        offerItem.setProduct(cartItems.getProduct());
-        offerItem.setQuantity(quantity);
-        offerItem.setSku(cartItems.getModel().getSku());
-        offerItem.setOffer(offer);
-        offerItem.setTax(cartItems.getModel().getTaxRate());
-        offerItem.setSellingPrice(sellPrice);
-        offerItem.setSubTotal(subTotal);
-
-        return offerItemRepository.save(offerItem);
-    }
-
-    public Double calculateSubTotal(Double sellPrice, Integer quantity, Double tax){
-        Double subTotal = sellPrice * quantity * (1 + (tax/100));
-        return subTotal;
-    }
-
-    public Double calculateSellPrice(Double buyPrice, Double profitRate){
-        Double sellPrice = buyPrice + (buyPrice*profitRate);
-        return sellPrice;
-    }
-
-
-    public Boolean existsOfferItemsByModel(Model model) {
-     return    offerItemRepository.existsByModel(model);
     }
 }

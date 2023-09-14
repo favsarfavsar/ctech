@@ -1,23 +1,21 @@
 package com.cookerytech.service;
 
 import com.cookerytech.config.EmailConfig;
-import com.cookerytech.domain.*;
+import com.cookerytech.domain.Offer;
+import com.cookerytech.domain.OfferItem;
+import com.cookerytech.domain.Role;
+import com.cookerytech.domain.User;
 import com.cookerytech.domain.enums.OfferStatus;
 import com.cookerytech.domain.enums.RoleType;
 import com.cookerytech.dto.OfferDTO;
-import com.cookerytech.dto.OfferDTOinItemsAndUser;
-import com.cookerytech.dto.UserDTO;
 import com.cookerytech.dto.request.OfferCreate;
 import com.cookerytech.dto.request.OfferUpdate;
 import com.cookerytech.dto.response.OfferCreateResponse;
 import com.cookerytech.exception.BadRequestException;
 import com.cookerytech.exception.ResourceNotFoundException;
 import com.cookerytech.exception.message.ErrorMessage;
-import com.cookerytech.mapper.OfferItemMapper;
 import com.cookerytech.mapper.OfferMapper;
-import com.cookerytech.mapper.UserMapper;
 import com.cookerytech.repository.OfferRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,14 +23,13 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import com.cookerytech.dto.response.OfferResponse;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
-
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
 
 @Service
 public class OfferService {
@@ -42,35 +39,25 @@ public class OfferService {
     private final UserService userService;
     private final OfferItemService offerItemService;
     private final JavaMailSender mailSender;
-   private final CartItemsService cartItemsService;
     private final CurrencyService currencyService;
-    private final OfferItemMapper offerItemMapper;
-    private final UserMapper userMapper;
 
-    @Autowired
-    private EmailConfig emailConfig;
-
-    public OfferService(OfferRepository offerRepository, OfferMapper offerMapper, UserService userService, @Lazy OfferItemService offerItemService, JavaMailSender mailSender,
-                        CartItemsService cartItemsService, CurrencyService currencyService, OfferItemMapper offerItemMapper, UserMapper userMapper) {
+    public OfferService(OfferRepository offerRepository, OfferMapper offerMapper, UserService userService, @Lazy OfferItemService offerItemService, JavaMailSender mailSender, CurrencyService currencyService) {
         this.offerRepository = offerRepository;
         this.offerMapper = offerMapper;
         this.userService = userService;
         this.offerItemService = offerItemService;
         this.mailSender = mailSender;
-        this.cartItemsService = cartItemsService;
         this.currencyService = currencyService;
-        this.offerItemMapper = offerItemMapper;
-        this.userMapper = userMapper;
     }
 
-     public Page<OfferDTO> findFilteredOffers(String query, Integer statusValue, LocalDate date1, LocalDate date2,
-                                           Pageable pageable) {
+    public Page<OfferDTO> findFilteredOffers(String query, Integer statusValue, LocalDate date1, LocalDate date2,
+                                             Pageable pageable) {
 
         OfferStatus status = null;
         if (statusValue != null) {
             status = OfferStatus.fromValue(statusValue);
         } else {
-
+            
             User currentUser = userService.getCurrentUser(); // Assuming you have a method to get the current user
 
             boolean isSalesSpecialist = false;
@@ -112,7 +99,7 @@ public class OfferService {
                 LocalDateTime.now();
 
         System.out.println(startDateTime + "<- ilk tarih | ikinci tarih ->" + endDateTime);
-       // System.out.println(new Offer().getSubTotal() + " <- bu sub total");
+        System.out.println(new Offer().getSubTotal() + " <- bu sub total");
         System.out.println(new OfferDTO().getSubTotal() + " <- bu OfferDTO sub total");
         System.out.println(new Offer().getDiscount() + " <- bu discount");
         System.out.println(new OfferDTO().getDiscount() + " <- bu OfferDTO discount");
@@ -152,69 +139,32 @@ public class OfferService {
         return offers.map(offerMapper::offerToOfferDTO);
     }
 
-    //E03  icin
-    public Page<OfferDTO> getAllOffersByUser(Long userId,String date1, String date2, int status, Pageable pageable) {
-
-        User user = userService.getById(userId);
-        String newDate1 = date1+" 00:00:00.000000";
-        String newDate2 = date2+" 00:00:00.000000";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS");//2023-09-09 15:29:21.240129
-        LocalDateTime dateTime1 = LocalDateTime.parse(newDate1, formatter);
-        LocalDateTime dateTime2 = LocalDateTime.parse(newDate2, formatter);
-
-        OfferStatus offerStatus = OfferStatus.fromValue(status);
-
-        Page<Offer> offers = null;
-
-        //if (!(date1==null) || !(date2==null) || !(status==0)) {
-            offers = offerRepository.getAllOffersByUser( dateTime1, dateTime2, offerStatus,user, pageable);
-//        } else {
-//            offers = offerRepository.findAllOffersWithPageByUser(pageable,user);
-//        }
-        return offers.map(offerMapper::offerToOfferDTO);
-    }
-
       public List<OfferResponse> getOffersByUserId(Long id) {
        return offerMapper.offersToOfferResponses(offerRepository.findAllByUserId(id));
     }
 
     public Offer getById(Long id){
-        Offer offer = offerRepository.findById(id).orElseThrow(()->
+        Offer offer = offerRepository.findByOfferId(id).orElseThrow(()->
                 new ResourceNotFoundException(String.format(ErrorMessage.RESOURCE_NOT_FOUND_EXCEPTION,id)));
         return offer;
     }
-    public OfferDTOinItemsAndUser getOfferDTOWithItemsAndUser(Long offerId) {
-        Offer offer = getById(offerId);
-        OfferDTOinItemsAndUser offerDTOinItemsAndUser = new OfferDTOinItemsAndUser();
-        User user = userService.getCurrentUser();
-        UserDTO userDTO = userMapper.userToUserDTO(user);
-        List<OfferItem> offerItemList = offerItemService.getOfferItems(offerId);
-
-
-        offerDTOinItemsAndUser.setId(offer.getId());
-        offerDTOinItemsAndUser.setCode(offer.getCode());
-        offerDTOinItemsAndUser.setStatus(offer.getStatus());
-        offerDTOinItemsAndUser.setUserDTO(userDTO);
-        offerDTOinItemsAndUser.setOfferItemsDTO(offerItemMapper.map(offerItemList));
-
-        return offerDTOinItemsAndUser;
+    public OfferDTO getOfferDTO(Long id) {
+        Offer offer = getById(id);
+        return offerMapper.offerToOfferDTO(offer);
     }
 
 
     //****************** offer create ********************************//
     //TODO : mail atılacak customer ve SS ye
-    @Transactional
     public OfferCreateResponse makeOffer(OfferCreate offerCreate) {
-
-        LocalDate now = LocalDate.now();
-        if(offerCreate.getDeliveryDate().isBefore(now)){
-            throw new BadRequestException(ErrorMessage.DELİVERY_DATE_INCORRECT_MESSAGE);
-        }
-
         User user = userService.getCurrentUser();
         OfferCreateResponse offerCreateResponse = new OfferCreateResponse();    //return edilecek
         Offer newOffer = new Offer();                                           //DB'ye setlenecek
+        //OfferId'ye ihtiyaç duyulduğu için offer create edildi
+        newOffer.setDeliveryAt(offerCreate.getDeliveryDate());
+        offerRepository.save(newOffer);
 
+        Long offerId = newOffer.getId();
 
         //code oluşturuldu ve DB'de varmı kontrolü yapıldı
         Boolean isThereCode;
@@ -222,44 +172,29 @@ public class OfferService {
         do{
             code = codeGenerate();
             isThereCode = codeTest(code);
-        }while (isThereCode);
+        }while (!isThereCode);
 
-        //OfferId'ye ihtiyaç duyulduğu için offer create edildi
         newOffer.setCode(code);
-        newOffer.setStatus(OfferStatus.CREATED);
-        newOffer.setUser(user);
-        newOffer.setCurrency(currencyService.getCurrency("USD"));
-        newOffer.setDeliveryAt(offerCreate.getDeliveryDate());
-        newOffer.setCreateAt(LocalDateTime.now());
-        newOffer.setUpdateAt(LocalDateTime.now());
-        Offer saveNewOffer = offerRepository.save(newOffer);
-
-        Long offerId = saveNewOffer.getId();
-
-
-         List<Cart_Items> cartItemList = cartItemsService.getCartItemsForOfferItem(user.getId());
-         List<OfferItem> offferItemList = cartItemList.stream().map(cartItems -> offerItemService.offerItemsCreate(cartItems,saveNewOffer)).collect(Collectors.toList());
-
-
-
         //grand total setlendi
-        Double grandTotal = grandTotalCalculate(offerId);
-        saveNewOffer.setGrandTotal(grandTotal);
-        offerRepository.save(saveNewOffer);
+        newOffer.setGrandTotal(grandTotalCalculate(offerId));
         //stock amount azalt
         stockAmountDecrease(offerId);
+        newOffer.setStatus(OfferStatus.CREATED);       //Burası AuthUser'a göre değişecek ise koda if eklenecek
+        newOffer.setUser(user);
+        newOffer.setCreateAt(LocalDateTime.now());
+        newOffer.setUpdateAt(LocalDateTime.now());
+        offerRepository.save(newOffer);
 
         //response için gerekli işlemler
         offerCreateResponse.setId(offerId);
-        offerCreateResponse.setCode(saveNewOffer.getCode());
-        offerCreateResponse.setStatus(saveNewOffer.getStatus().name());
-        offerCreateResponse.setItems(offerItemMapper.map(offferItemList));
-        offerCreateResponse.setUserDTO(userMapper.userToUserDTO(user));
+        offerCreateResponse.setCode(code);
+        offerCreateResponse.setStatus(newOffer.getStatus().name());
+        offerCreateResponse.setItems(getOfferItems(offerId));
 
         //mail gönderme
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(emailConfig.getConstantEmail());
-        message.setTo("meozkan07@gmail.com");
+//        message.setFrom(EmailConfig.constantEmail);
+        message.setTo(user.getEmail());
         message.setSubject("New Offer");
         message.setText(offerCreateResponse.toString());
         mailSender.send(message);
@@ -343,8 +278,10 @@ public class OfferService {
                 isAdmin){
 
             offer.setDiscount(offerUpdate.getDiscount());
+            offer.setGrandTotal( offer.getSubTotal() * (1- (offerUpdate.getDiscount()/100) ) );
             offer.setStatus(offerUpdate.getStatus());
             offer.setCurrency(currencyService.getCurrencyById(offerUpdate.getCurrencyId()));
+            offer.setUpdateAt(LocalDateTime.now());
 
         }else {
             throw new BadRequestException(ErrorMessage.NOT_PERMITTED_METHOD_MESSAGE);
@@ -371,10 +308,8 @@ public class OfferService {
 
     public Offer getOffer(Long id) {
         Offer offer = offerRepository.findById(id).orElseThrow(()->
-                new ResourceNotFoundException(String.format(ErrorMessage.RESOURCE_NOT_FOUND_EXCEPTION,id))
+                new ResourceNotFoundException(String.format(ErrorMessage.RESOURCE_NOT_FOUND_EXCEPTION))
         );
         return offer;
     }
-
-
 }

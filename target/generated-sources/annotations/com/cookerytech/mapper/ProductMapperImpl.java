@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2023-09-15T01:46:47+0300",
+    date = "2023-09-08T04:21:16+0300",
     comments = "version: 1.5.2.Final, compiler: javac, environment: Java 11.0.17 (Oracle Corporation)"
 )
 @Component
@@ -24,7 +24,7 @@ public class ProductMapperImpl implements ProductMapper {
 
         ProductDTO productDTO = new ProductDTO();
 
-        productDTO.setBrandId( ProductMapper.getBrandIds( product.getBrand() ) );
+        productDTO.setBrandIds( ProductMapper.getBrandIds( product.getBrands() ) );
         productDTO.setCategoryId( ProductMapper.getCategoryId( product.getCategory() ) );
         productDTO.setId( product.getId() );
         productDTO.setTitle( product.getTitle() );

@@ -1,6 +1,5 @@
 package com.cookerytech.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -63,5 +62,8 @@ public class Model {
     private LocalDateTime createAt;
     
     private LocalDateTime updateAt;
+
+//    @OneToMany(mappedBy = "model", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private Set<Favorite> favorite;
 
 }

@@ -90,12 +90,11 @@ public class ProductController {
 
     }
 
-    @GetMapping("/{productId}/models") //A11
-    public ResponseEntity<List<ModelDTO>> getModelsByProductId(@PathVariable Long productId,
-                                                               @RequestHeader(value = "Authorization", required = false)
-                                                               String token){
-
-        List<ModelDTO> modelDTOS= productService.getModelsByProductId(productId,token);
+    @GetMapping("/{id}/models")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('SALES_SPECIALIST') or hasRole('SALES_MANAGER') or " +
+            " hasRole('PRODUCT_MANAGER') or hasRole('CUSTOMER')")
+    public ResponseEntity<List<ModelDTO>> getModelsByProductId(@PathVariable Long id){
+        List<ModelDTO> modelDTOS= productService.getModelsByProductId(id);
         return ResponseEntity.ok(modelDTOS);
 
     }

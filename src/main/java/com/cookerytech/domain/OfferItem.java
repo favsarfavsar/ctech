@@ -23,7 +23,7 @@ public class OfferItem {
 
     //anlaşılamadı
     @Column(nullable = false,length = 100)
-    @Size(min=1,max=100)
+    @Size(min=10,max=100)
     private  String sku;
 
     @Column(nullable = false)

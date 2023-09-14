@@ -5,36 +5,18 @@ import com.cookerytech.domain.Offer;
 import com.cookerytech.domain.User;
 import com.cookerytech.dto.OfferDTO;
 import com.cookerytech.dto.response.OfferResponse;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.processing.Generated;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeConstants;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2023-09-15T01:46:47+0300",
+    date = "2023-09-08T15:43:07+0300",
     comments = "version: 1.5.2.Final, compiler: javac, environment: Java 11.0.17 (Oracle Corporation)"
 )
 @Component
 public class OfferMapperImpl implements OfferMapper {
-
-    private final DatatypeFactory datatypeFactory;
-
-    public OfferMapperImpl() {
-        try {
-            datatypeFactory = DatatypeFactory.newInstance();
-        }
-        catch ( DatatypeConfigurationException ex ) {
-            throw new RuntimeException( ex );
-        }
-    }
 
     @Override
     public OfferDTO offerToOfferDTO(Offer offer) {
@@ -49,9 +31,10 @@ public class OfferMapperImpl implements OfferMapper {
         offerDTO.setId( offer.getId() );
         offerDTO.setCode( offer.getCode() );
         offerDTO.setStatus( offer.getStatus() );
+        offerDTO.setSubTotal( offer.getSubTotal() );
         offerDTO.setDiscount( offer.getDiscount() );
         offerDTO.setGrandTotal( offer.getGrandTotal() );
-        offerDTO.setDeliveryAt( xmlGregorianCalendarToLocalDateTime( localDateToXmlGregorianCalendar( offer.getDeliveryAt() ) ) );
+        offerDTO.setDeliveryAt( offer.getDeliveryAt() );
         offerDTO.setCreateAt( offer.getCreateAt() );
         offerDTO.setUpdateAt( offer.getUpdateAt() );
 
@@ -106,64 +89,6 @@ public class OfferMapperImpl implements OfferMapper {
         Offer offer = new Offer();
 
         return offer;
-    }
-
-    private XMLGregorianCalendar localDateToXmlGregorianCalendar( LocalDate localDate ) {
-        if ( localDate == null ) {
-            return null;
-        }
-
-        return datatypeFactory.newXMLGregorianCalendarDate(
-            localDate.getYear(),
-            localDate.getMonthValue(),
-            localDate.getDayOfMonth(),
-            DatatypeConstants.FIELD_UNDEFINED );
-    }
-
-    private static LocalDateTime xmlGregorianCalendarToLocalDateTime( XMLGregorianCalendar xcal ) {
-        if ( xcal == null ) {
-            return null;
-        }
-
-        if ( xcal.getYear() != DatatypeConstants.FIELD_UNDEFINED
-            && xcal.getMonth() != DatatypeConstants.FIELD_UNDEFINED
-            && xcal.getDay() != DatatypeConstants.FIELD_UNDEFINED
-            && xcal.getHour() != DatatypeConstants.FIELD_UNDEFINED
-            && xcal.getMinute() != DatatypeConstants.FIELD_UNDEFINED
-        ) {
-            if ( xcal.getSecond() != DatatypeConstants.FIELD_UNDEFINED
-                && xcal.getMillisecond() != DatatypeConstants.FIELD_UNDEFINED ) {
-                return LocalDateTime.of(
-                    xcal.getYear(),
-                    xcal.getMonth(),
-                    xcal.getDay(),
-                    xcal.getHour(),
-                    xcal.getMinute(),
-                    xcal.getSecond(),
-                    Duration.ofMillis( xcal.getMillisecond() ).getNano()
-                );
-            }
-            else if ( xcal.getSecond() != DatatypeConstants.FIELD_UNDEFINED ) {
-                return LocalDateTime.of(
-                    xcal.getYear(),
-                    xcal.getMonth(),
-                    xcal.getDay(),
-                    xcal.getHour(),
-                    xcal.getMinute(),
-                    xcal.getSecond()
-                );
-            }
-            else {
-                return LocalDateTime.of(
-                    xcal.getYear(),
-                    xcal.getMonth(),
-                    xcal.getDay(),
-                    xcal.getHour(),
-                    xcal.getMinute()
-                );
-            }
-        }
-        return null;
     }
 
     private Long offerUserId(Offer offer) {

@@ -1,6 +1,7 @@
 package com.cookerytech.service;
 
 
+import com.cookerytech.domain.Cart;
 import com.cookerytech.domain.Favorite;
 import com.cookerytech.domain.Model;
 import com.cookerytech.domain.User;
@@ -13,8 +14,8 @@ import com.cookerytech.dto.FavoriteDTO;
 import com.cookerytech.mapper.ProductMapper;
 import com.cookerytech.repository.FavoriteRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,20 +29,18 @@ public class FavoriteService {
     private final UserService userService;
     private final ProductMapper productMapper;
     private final CartService cartService;
-    private final CartItemsService cartItemsService;
 
-    public FavoriteService(FavoriteRepository favoriteRepository,CartItemsService cartItemsService, ModelService modelService, ModelMapper modelMapper, UserService userService, ProductMapper productMapper, CartService cartService) {
+    public FavoriteService(FavoriteRepository favoriteRepository, ModelService modelService, ModelMapper modelMapper, UserService userService, ProductMapper productMapper, CartService cartService) {
         this.favoriteRepository = favoriteRepository;
         this.modelService = modelService;
         this.modelMapper = modelMapper;
         this.userService = userService;
         this.productMapper = productMapper;
         this.cartService = cartService;
-        this.cartItemsService = cartItemsService;
     }
 
 
-    @Transactional
+@Transactional
     public ModelDTO toggleFavorite(/*User currentUser,*/ FavoriteUpdateRequest modelId) {
 
 //        User user = currentUser; // Get the authenticated user
@@ -58,14 +57,13 @@ public class FavoriteService {
             Favorite newFavorite = new Favorite();
             newFavorite.setModel(model);
             newFavorite.setUser(authenticatedUser);
-            newFavorite.setCreateAt(LocalDateTime.now());
+//            newFavorite.setCreateAt(LocalDateTime.now());
             favoriteRepository.save(newFavorite);
         }
 
         return modelMapper.modelToModelDTO(model);
     }
 
-    @Transactional
     public List<FavoriteDTO> getFavoritesByCurrentlyUser() {
 
         User currentlyUser = userService.getCurrentUser();
@@ -91,18 +89,14 @@ public class FavoriteService {
 
     }
 
-    @Transactional
+
     public void moveUsersFavoritesToCart() {  //K04
         //currently users favorites
       List<FavoriteDTO> usersFavorites = getFavoritesByCurrentlyUser();
 
         for (FavoriteDTO userFavorite : usersFavorites) {
 
-
-          cartItemsService.manageCartItems(userFavorite.getModelDTO().getId(),1);
-
-
-
+        //  cartService.manageCartItem(userFavorite.getModelDTO().getId(),1)
 
         }
 
@@ -127,7 +121,4 @@ public class FavoriteService {
     }
 
 
-    public List<Long> getFavoriteIdsByModel(Model model) {
-     return favoriteRepository.findAllByModel(model).stream().map(f->f.getId()).collect(Collectors.toList());
-    }
 }

@@ -1,6 +1,5 @@
 package com.cookerytech.service;
 
-import com.cookerytech.domain.Product;
 import com.cookerytech.domain.ProductPropertyKey;
 import com.cookerytech.dto.ProductPropertyKeyDTO;
 import com.cookerytech.dto.request.ProductPropertyRequest;
@@ -12,7 +11,6 @@ import com.cookerytech.repository.ProductPropertyKeyRepository;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,20 +31,19 @@ public class ProductPropertyKeyService {
         this.modelPropertyValueService = modelPropertyValueService;
     }
 
-    public ProductPropertyKeyDTO makeProductPropertyKey(ProductPropertyRequest createProductPropertyRequest) {
 
+    public ProductPropertyKeyDTO makeProductPropertyKey(ProductPropertyRequest createProductPropertyRequest) {
 
         ProductPropertyKey productPropertyKey = new ProductPropertyKey();
 
         productPropertyKey.setSeq(createProductPropertyRequest.getSeq());
         productPropertyKey.setName(createProductPropertyRequest.getName());
-        productPropertyKey.setProduct(productService.getById(createProductPropertyRequest.getProductId()));
+        productPropertyKey.setProductId(productService.getById(createProductPropertyRequest.getProductId()));
         productPropertyKey.setBuiltIn(false);
 
-        ProductPropertyKey productPropertyKey1 = productPropertyKeyRepository.save(productPropertyKey);
-        return productPropertyKeyMapper.productPropertyKeyToProductPropertyKeyDTO(productPropertyKey1);
+       ProductPropertyKey productPropertyKey1 = productPropertyKeyRepository.save(productPropertyKey);
+       return productPropertyKeyMapper.productPropertyKeyToProductPropertyKeyDTO(productPropertyKey1);
     }
-
 
     public ProductPropertyKey getById(Long id){
         ProductPropertyKey productPropertyKey = productPropertyKeyRepository.findById(id).orElseThrow(()->

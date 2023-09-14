@@ -12,7 +12,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CartItemRequest {
 
-    private Long modelId;
+    private Model modelId;
 
-    private Integer amount;
+    private Double amount;
 }

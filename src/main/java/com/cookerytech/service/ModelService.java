@@ -1,27 +1,32 @@
 package com.cookerytech.service;
 
 import com.cookerytech.domain.*;
+import com.cookerytech.dto.BrandDTO;
 import com.cookerytech.dto.ModelDTO;
 import com.cookerytech.dto.request.ModelCreatRequest;
 import com.cookerytech.dto.request.ModelUpdateRequest;
 import com.cookerytech.dto.response.ModelResponse;
 import com.cookerytech.exception.BadRequestException;
 import com.cookerytech.exception.ConflictException;
+import com.cookerytech.exception.ResourceNotFoundException;
 import com.cookerytech.exception.message.ErrorMessage;
 import com.cookerytech.mapper.ModelMapper;
 import com.cookerytech.repository.ModelRepository;
-import org.springframework.context.annotation.Lazy;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ModelService {
 
     private final ModelRepository modelRepository;
@@ -32,47 +37,19 @@ public class ModelService {
 
     private  final  ImageService imageService;
 
-    private  final  OfferItemService offerItemService;
 
-    private  final  ModelPropertyValueService modelPropertyValueService;
-
-    @Lazy
-    private  final CartItemsService cartItemsService;
-    private  final  FavoriteService favoriteService;
-
-    public ModelService(ModelRepository modelRepository, ModelMapper modelMapper,@Lazy  ProductService productService, CurrencyService currencyService, ImageService imageService,@Lazy  OfferItemService offerItemService, ModelPropertyValueService modelPropertyValueService, @Lazy CartItemsService cartItemsService, @Lazy FavoriteService favoriteService) {
-        this.modelRepository = modelRepository;
-        this.modelMapper = modelMapper;
-        this.productService = productService;
-        this.currencyService = currencyService;
-        this.imageService = imageService;
-        this.offerItemService = offerItemService;
-        this.modelPropertyValueService = modelPropertyValueService;
-        this.cartItemsService = cartItemsService;
-        this.favoriteService = favoriteService;
-    }
 
     public Model getModelById(Long id){
        return modelRepository.findById(id).
                orElseThrow(()-> new RuntimeException(String.format(ErrorMessage.MODEL_NOT_FOUND_EXCEPTION, id)));
     }
-    @Transactional
-    public ModelDTO updateModelById(Long id, ModelUpdateRequest modelUpdateRequest) {
+
+    public void updateModelById(Long id, ModelUpdateRequest modelUpdateRequest) {
         Model model = getModelById(id);
 
         if (model.getBuiltIn()){
             throw new BadRequestException(ErrorMessage.NOT_PERMITTED_METHOD_MESSAGE);
         }
-        Boolean existsBySku= modelRepository.existsBySku(modelUpdateRequest.getSku());
-        if(existsBySku) {
-            throw new ConflictException(ErrorMessage.SKU_ALREADY_EXİST);
-        }
-       String imgId = imageService.saveImage2(modelUpdateRequest.getImage());
-      Image savedImg =   imageService.getImageById(imgId);
-      Set<Image> imageSet = model.getImages();
-      imageSet.add(savedImg);
-
-
 
         model.setTitle(modelUpdateRequest.getTitle());
         model.setSku(modelUpdateRequest.getSku());
@@ -83,44 +60,24 @@ public class ModelService {
         model.setTaxRate(modelUpdateRequest.getTaxRate());
         model.setIsActive(modelUpdateRequest.getIsActive());
         model.setUpdateAt(LocalDateTime.now());
-        model.setImages(imageSet);
         model.setProduct(productService.getById(modelUpdateRequest.getProductId()));
-        model.setCurrency(currencyService.getCurrencyById(modelUpdateRequest.getCurrencyId()));
-
-        modelRepository.save(model);
-
-        return modelMapper.modelToModelDTO(model);
+        model.setCurrency(currencyService.getCurrency(modelUpdateRequest.getCurrencyCode()));
 
     }
 
 
-    public ModelDTO deleteModelById(Long id) {
+    public ModelResponse deleteModelById(Long id) {
         Model model = getModelById(id);
         if (model.getBuiltIn()){
             throw new BadRequestException(ErrorMessage.NOT_PERMITTED_METHOD_MESSAGE);
         }
         // ??  If the model has any related records in offer_items table,
-        Boolean  existsOfferItemsByModel =  offerItemService.existsOfferItemsByModel(model);
-        if(existsOfferItemsByModel){
-            throw new BadRequestException(ErrorMessage.CAN_NOT_BE_DELETED_MESSAGE);
-        }
+        //  it can not be deleted and endpoint returns an error otherwise returns the model that just deleted
 
         // ?? – If any model is deleted, related records in model_property_values, cart_items should be deleted.
 
-        List<Long> mPValueId = modelPropertyValueService.getModelPropertyValueIdByModel(model);
-        for (Long mPV:mPValueId){
-            modelPropertyValueService.deleteModelPropertyValue(mPV);
-        }
-          List<Long> cartItemId = cartItemsService.getCartItemIdsByModel(model);
-        for (Long cIId:cartItemId){
-           cartItemsService.deleteCartItem(cIId);
-        }
-        List<Long> favoriteIds = favoriteService.getFavoriteIdsByModel(model);
-        for (Long fId:favoriteIds){
-           favoriteService.deleteFavorite(fId);
-        }
         modelRepository.delete(model);
-        return modelMapper.modelToModelDTO(model);
+        return modelMapper.modelToModelResponse(model);
 
     }
 
@@ -132,11 +89,23 @@ public class ModelService {
         }
         LocalDateTime now = LocalDateTime.now();
 
+       // String imageId =imageService.saveImage(modelCreatRequest.getImages());
        Set<String> imageIds = modelCreatRequest.getImages().stream().map(img->imageService.saveImage2(img)).collect(Collectors.toSet());
+
+      //  Image savedImage = imageService.getImageById(imageId);
        Set<Image> savedImages = imageIds.stream().map(id->imageService.getImageById(id)).collect(Collectors.toSet());
+
+        //Set<Image> setImage= new HashSet<>();
+       // setImage.add(savedImage);
+
+       // Set<Image> setImage= savedImageIds.stream().map(imageId->imageService.getImageById(imageId)).collect(Collectors.toSet());
+        //Gelen currencyId ye göre currency getirilecek
         Currency currency=currencyService.getCurrencyById(modelCreatRequest.getCurrencyId());
+
         //Gelen productId ye göre product getirilecek
         Product product= productService.getById(modelCreatRequest.getProductId());
+
+
 
         Model model=new Model();
         model.setTitle(modelCreatRequest.getTitle());
@@ -177,14 +146,6 @@ public class ModelService {
     public List<Long> getModelIdsByProductId(Long productId) {
         List<Model> modelList= modelRepository.findAllByProductId(productId);
         return modelList.stream().map(model -> model.getId()).collect(Collectors.toList());
-    }
-
-    public List<ModelDTO> getModelsByProductIdActiveModelBrandCategoryProduct(Long productId) {
-      List<Model> modelList=  modelRepository.getModelsByProductIdActiveModelBrandCategoryProduct(productId);
-
-                return       modelMapper.map(modelList);
-
-
     }
 }
 

@@ -38,7 +38,6 @@ public class SecurityConfig {
                         "/register",
                         "/",
                         "/index.html",
-                        "products/{productId}/models",
                         "contactmessage/visitors","/actuator/info","/actuator/health").permitAll().
                 anyRequest().authenticated();
 

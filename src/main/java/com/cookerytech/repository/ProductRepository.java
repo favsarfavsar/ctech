@@ -16,16 +16,16 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
     @Query("SELECT p FROM Product p JOIN p.category c WHERE c.id = :categoryId AND p.isActive = true")
     List<Product> getProductsByCategory(@Param("categoryId") Long categoryId);
 
-    @Query("SELECT p FROM Product p JOIN p.brand b WHERE b.id = :brandId")
+    @Query("SELECT p FROM Product p JOIN p.brands b WHERE b.id = :brandId")
     List<Product> findProductByBrandId(@Param("brandId") Long brandId);
 
     @Query("SELECT p FROM Product p\n" +
-            "JOIN p.brand b\n" +
+            "JOIN p.brands b\n" +
             "JOIN p.category c\n" +
             "WHERE b.isActive = true AND c.isActive = true AND p.isActive = true AND p.title = ?1")
     Page<Product> getActiveProducts(String q, Pageable pageable);
 
-    @Query("SELECT p FROM Product p JOIN p.brand b JOIN p.category c " +
+    @Query("SELECT p FROM Product p JOIN p.brands b JOIN p.category c " +
             "WHERE b.isActive = true " +
             " AND c.isActive = true " +
             " AND p.isActive = true" +
@@ -41,7 +41,4 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
 
     @Query("SELECT p FROM Product p WHERE p.isFeatured = true")
     List<Product> getAllFeaturedProductsForAdmin();
-
-    @Query("SELECT p FROM Product p WHERE p.isActive = true")
-    long numberOfPublishedProduct();
 }

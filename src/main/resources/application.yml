@@ -46,7 +46,7 @@ logging:
   level:
     '[org.springframework.web]' : WARN
     '[org.hibernate]' : INFO
-    '[com.saferent]' : DEBUG
+    '[com.cookerytech]' : DEBUG
 management: #actuator
   endpoints:
     web:

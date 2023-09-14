@@ -30,21 +30,4 @@ public class OfferItemDTO {
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
 
-    @Override
-    public String toString() {
-        return "OfferItemDTO{" +
-                "id=" + id +
-                ", sku='" + sku + '\'' +
-                ", quantity=" + quantity +
-                ", sellingPrice=" + sellingPrice +
-                ", tax=" + tax +
-                ", subTotal=" + subTotal +
-                ", discount=" + discount +
-                ", productId=" + productId +
-                ", offerId=" + offerId +
-                ", modelId=" + modelId +
-                ", createAt=" + createAt +
-                ", updateAt=" + updateAt +
-                '}';
-    }
 }

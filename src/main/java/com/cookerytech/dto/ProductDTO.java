@@ -49,7 +49,7 @@ public class ProductDTO {
     private Boolean builtIn;
 
 
-    private Long brandId;
+    private Set<Long> brandIds = new HashSet<>();
 
 
     private Long categoryId;

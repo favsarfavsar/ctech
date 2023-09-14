@@ -92,9 +92,8 @@ public class UserResponse {
         this.taxNo = user.getTaxNo();
         this.updateAt = user.getUpdateAt();
         this.createAt = user.getCreateAt();
-       setRoles(user.getRoles());
 
-       // this.roles=getRoles();  //  Set<Role> leri Set<String> e
+        this.roles=getRoles();  //  Set<Role> leri Set<String> e
         // yukardaki methodan dan donusturuyor.
     }
 }

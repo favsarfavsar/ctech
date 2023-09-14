@@ -12,6 +12,6 @@ import java.util.List;
 @Component
 public interface CartMapper {
 
-//    @Mapping(source="user", target="userId", ignore = true)
-//    List<CartResponse> cartToCartResponses(List<Cart> allCarts);
+    @Mapping(source="user", target="userId", ignore = true)
+    List<CartResponse> cartToCartResponses(List<Cart> allCarts);
 }

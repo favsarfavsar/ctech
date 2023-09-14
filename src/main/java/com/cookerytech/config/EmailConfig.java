@@ -19,7 +19,4 @@ public class EmailConfig {
         return constantEmail;
     }
 
-
-    // test satırı
-
 }

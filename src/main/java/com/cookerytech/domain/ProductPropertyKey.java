@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.List;
 
 @Getter
 @Setter
@@ -27,8 +26,14 @@ public class ProductPropertyKey {
 
     private Boolean builtIn=false;
 
-    @ManyToOne
+    //(cascade = CascadeType.REMOVE)
+    @OneToOne
     @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    private Product productId;
 
+//    @Column(nullable = false)
+//    private LocalDateTime createAt;
+//
+//    @Column(nullable = false)
+//    private LocalDateTime updateAt;
 }

@@ -28,6 +28,6 @@ public class Favorite {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
-    @Column(nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime createAt;
+    @Column(nullable = false/*, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"*/)
+    private LocalDateTime createAt = LocalDateTime.now();
 }

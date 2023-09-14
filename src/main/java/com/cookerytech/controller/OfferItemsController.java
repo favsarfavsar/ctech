@@ -3,10 +3,13 @@ package com.cookerytech.controller;
 import com.cookerytech.dto.OfferItemDTO;
 import com.cookerytech.dto.request.OfferItemsUpdate;
 import com.cookerytech.service.OfferItemService;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/offer-items")
@@ -21,8 +24,9 @@ public class OfferItemsController {
 
     @PutMapping("/{id}/admin")
     @PreAuthorize("hasRole('SALES_SPECIALIST')")
-    public ResponseEntity<OfferItemDTO> updateOfferItems(@PathVariable Long id, @RequestBody OfferItemsUpdate offerItemsUpdate){
-        OfferItemDTO offerItemDTO = offerItemService.updateOfferItems(id,offerItemsUpdate);
+    public ResponseEntity<List<OfferItemDTO>> updateOfferItems(@PathVariable Long id,
+                                                               @Valid @RequestBody OfferItemsUpdate offerItemsUpdate){
+        List<OfferItemDTO> offerItemDTO = offerItemService.updateOfferItems(id, offerItemsUpdate);
         return ResponseEntity.ok(offerItemDTO);
     }
 

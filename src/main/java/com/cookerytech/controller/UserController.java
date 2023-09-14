@@ -1,7 +1,10 @@
 package com.cookerytech.controller;
 
 import com.cookerytech.dto.UserDTO;
-import com.cookerytech.dto.request.*;
+import com.cookerytech.dto.request.AdminUserUpdateRequest;
+import com.cookerytech.dto.request.UserDeleteRequest;
+import com.cookerytech.dto.request.UserRequest;
+import com.cookerytech.dto.request.UserUpdateRequest;
 import com.cookerytech.dto.response.CTResponse;
 import com.cookerytech.dto.response.ResponseMessage;
 import com.cookerytech.dto.response.UserResponse;
@@ -76,14 +79,13 @@ public class UserController {
         return  ResponseEntity.ok(usersWithPage);
     }
 
-    @PutMapping("/auth")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER') or hasRole('PRODUCT_MANAGER') or hasRole('SALES_SPECIALIST') or hasRole('SALES_MANAGER')")
-    public ResponseEntity<UserResponse> updateUser(@Valid @RequestBody UpdateAuthenticatedUser updateAuthenticatedUser){
-        UserResponse userResponse = userService.updateUser(updateAuthenticatedUser);
+    @PutMapping("/users/auth")
+    public ResponseEntity<UserResponse> updateUser(@Valid @RequestBody UserRequest userRequest){
+        UserResponse userResponse = userService.updateUser(userRequest);
         return ResponseEntity.ok(userResponse);
     }
 
-    @PatchMapping("/auth")//F06
+    @PatchMapping("/auth")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER') or hasRole('PRODUCT_MANAGER') or hasRole('SALES_SPECIALIST') or hasRole('SALES_MANAGER')")
     public ResponseEntity<CTResponse> updatePassword(
             @Valid @RequestBody UserUpdateRequest userUpdateRequest){

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2023-09-15T01:46:47+0300",
+    date = "2023-09-08T04:21:16+0300",
     comments = "version: 1.5.2.Final, compiler: javac, environment: Java 11.0.17 (Oracle Corporation)"
 )
 @Component
@@ -24,6 +24,7 @@ public class ProductPropertyKeyMapperImpl implements ProductPropertyKeyMapper {
 
         ProductPropertyKeyDTO productPropertyKeyDTO = new ProductPropertyKeyDTO();
 
+        productPropertyKeyDTO.setProductId( ProductPropertyKeyMapper.getProductId( productPropertyKey.getProductId() ) );
         productPropertyKeyDTO.setId( productPropertyKey.getId() );
         productPropertyKeyDTO.setName( productPropertyKey.getName() );
         productPropertyKeyDTO.setSeq( productPropertyKey.getSeq() );

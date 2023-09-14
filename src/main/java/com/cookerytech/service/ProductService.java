@@ -51,7 +51,7 @@ public class ProductService {
     private final RoleService roleService;
 
 
-    public ProductService(ProductMapper productMapper, ProductRepository productRepository, ProductPropertyKeyService productPropertyKeyService,@Lazy ModelService modelService, UserService userService, @Lazy BrandService brandService,@Lazy  CategoryService categoryService, OfferItemService offerItemService,@Lazy CartItemsService cartItemsService, @Lazy FavoriteService favoriteService, RoleService roleService) {
+    public ProductService(ProductMapper productMapper, ProductRepository productRepository, ProductPropertyKeyService productPropertyKeyService, @Lazy ModelService modelService, UserService userService, @Lazy BrandService brandService, @Lazy CategoryService categoryService, OfferItemService offerItemService, CartItemsService cartItemsService, @Lazy FavoriteService favoriteService, RoleService roleService) {
         this.productRepository = productRepository;
         this.productPropertyKeyService = productPropertyKeyService;
         this.productMapper = productMapper;
@@ -72,6 +72,7 @@ public class ProductService {
     }
 
     public ProductPropertyKeyDTO makeProductProperty(ProductPropertyRequest createProductPropertyRequest) {
+        getById(createProductPropertyRequest.getProductId());
         return productPropertyKeyService.makeProductPropertyKey(createProductPropertyRequest);
     }
 
@@ -159,7 +160,7 @@ public class ProductService {
 
         Product product = new Product();
 
-        Brand brand =  brandService.getBrand(productSaveRequest.getBrandId());
+        Set<Brand> brandSet =  productSaveRequest.getBrandsIds().stream().map(brandId->brandService.getBrand(brandId)).collect(Collectors.toSet());
 
         Category category = categoryService.getCategory(productSaveRequest.getCategoryId());
 
@@ -171,7 +172,7 @@ public class ProductService {
         product.setIsNew(productSaveRequest.getIsNew());
         product.setIsFeatured(productSaveRequest.getIsFeatured());
         product.setIsActive(productSaveRequest.getIsActive());
-        product.setBrand(brand);
+        product.setBrands(brandSet);
         product.setCategory(category);
         product.setCreateAt(LocalDateTime.now());
         product.setSlug(titleCumle);
@@ -200,7 +201,7 @@ public class ProductService {
         product.setIsFeatured(productSaveRequest.getIsFeatured());
         product.setIsActive(productSaveRequest.getIsActive());
         product.setSlug(product.getSlug());
-        product.setBrand(product.getBrand());
+        product.setBrands(product.getBrands());
         product.setCategory(product.getCategory());
         product.setUpdateAt(now);
 
@@ -209,7 +210,6 @@ public class ProductService {
         return productMapper.productToProductDTO(updateProduct);
 
     }
-
 
 
 
@@ -249,21 +249,20 @@ public class ProductService {
 //    }
 
     @Transactional
-    public List<ModelDTO> getModelsByProductId(Long productId,String token) {
-
+    public List<ModelDTO> getModelsByProductId(Long id) {
+        List<ModelDTO> adminModelDTOS= modelService.getModelsByProductId(id);
+        List<ModelDTO> modelDTOS=new ArrayList<>();
+        modelDTOS=adminModelDTOS.stream().filter(model->model.getIsActive()).collect(Collectors.toList());
         Set<Role> userRole = userService.getCurrentUser().getRoles();
 
-        if (!userRole.contains(roleService.findByType(RoleType.ROLE_ADMIN))) {
-            List<ModelDTO> modelDTOS=modelService.getModelsByProductIdActiveModelBrandCategoryProduct(productId);
+        if (!userRole.contains(RoleType.ROLE_ADMIN)) {
             return modelDTOS;
         }
-        List<ModelDTO> adminModelDTOS= modelService.getModelsByProductId(productId);
         return adminModelDTOS;
 
     }
 
     public List<ProductPropertyKeyDTO> getPropertyKeyByProductId(Long id) {
-
         List<ProductPropertyKeyDTO> productPropertyKeyDTOS= productPropertyKeyService.getPropertyKeyByProductId(id);
         return productPropertyKeyDTOS;
 
@@ -279,7 +278,7 @@ public class ProductService {
         Set<Role> userRole = userService.getCurrentUser().getRoles();
 
 
-        if (!userRole.contains(roleService.findByType(RoleType.ROLE_ADMIN))) {  //roleService.findByType(RoleType.ROLE_ADMIN)
+        if (!userRole.contains(RoleType.ROLE_ADMIN)) {  //roleService.findByType(RoleType.ROLE_ADMIN)
             Page<Product> productPage = productRepository.getActiveProducts(q, pageable);
 
             return productPage.map(brand -> productMapper.productToProductDTO(brand));
@@ -316,7 +315,7 @@ public class ProductService {
     }
 
     public long getNumberOfProducts() {
-        return productRepository.numberOfPublishedProduct();
+        return productRepository.count();
 
     }
 
@@ -329,20 +328,9 @@ public class ProductService {
     }
 
     public List<ProductDTO> getMostPopularProducts(int amount) {
-
         List<Product> mostPopularProducts =  productRepository.getMostPopularProducts();
         List<Product> amountProducts = mostPopularProducts.stream().limit(amount).collect(Collectors.toList());
 
         return productMapper.map(amountProducts);
     }
-
-    public Boolean isThereProduct(Long id){
-        return productRepository.existsById(id);
-    }
-
-//    public Double getBrandByProductId(Long productId) {
-//        Product product = getProduct(productId);
-//        Double profitRates = product.getBrand().getProfitRate();
-//        return profitRates;
-//    }
 }

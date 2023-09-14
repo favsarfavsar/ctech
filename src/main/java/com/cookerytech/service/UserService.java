@@ -228,7 +228,9 @@ public class UserService {
     }
 
 
-    public UserResponse updateUser(UpdateAuthenticatedUser userRequest) {
+    public UserResponse updateUser(UserRequest userRequest) {
+
+
 
         User user =getCurrentUser();
       if(user.getBuiltIn()){
@@ -252,10 +254,11 @@ public class UserService {
         user.setCountry(userRequest.getCountry());
         user.setBirthDate(userRequest.getBirthDate());
         user.setTaxNo(userRequest.getTaxNo());
+        user.setStatus(userRequest.getStatus());
         user.setUpdateAt(LocalDateTime.now());
-        User updatedUser = userRepository.save(user);
+        userRepository.save(user);
 
-        UserResponse userResponse = new UserResponse(updatedUser);
+        UserResponse userResponse = new UserResponse(user);
         return userResponse;
     }
 

@@ -21,10 +21,4 @@ public interface ModelRepository extends JpaRepository<Model, Long> {
     @Query("Select m from Model m  where m.product.id=:productId")
     List<Model> findAllByProductId(@Param("productId") Long productId);
 
-    @Query("SELECT m FROM Model m JOIN m.product.brand b WHERE m.product.id=:productId and m.isActive=true" +
-            " and m.product.isActive = true " +
-            "and m.product.category.isActive=true and b.isActive=true ")
-    List<Model> getModelsByProductIdActiveModelBrandCategoryProduct(@Param("productId") Long productId);
-
-
 }

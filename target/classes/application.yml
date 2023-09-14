@@ -7,9 +7,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://snuffleupagus.db.elephantsql.com/qlmucpfw
-    username: qlmucpfw
-    password: 3hGyBW4lXWY13D5pIbaAk6x82xLgwrFj
+    url: jdbc:postgresql://localhost:5432/cookerytech_db
+    username: db_user
+    password: db_password
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

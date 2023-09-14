@@ -60,27 +60,18 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
                                                      " OR lower(o.status) like %?4%")
     Page<Offer> getAllOffers(String qLower, String date1, String date2, String statusLower, Pageable pageable);
 
-    @Query("SELECT o FROM Offer o where (o.createAt BETWEEN ?1 AND ?2) " +
-            " AND o.status=?3 AND o.user=?4")
-    Page<Offer> getAllOffersByUser(LocalDateTime date1, LocalDateTime date2, OfferStatus status, User user, Pageable pageable);
-
     @Query("SELECT o FROM Offer o")
     Page<Offer> findAllOffersWithPage(Pageable pageable);
 
-    @Query("SELECT o FROM Offer o WHERE " +
-            "o.user.id=?2")
-    Page<Offer> findAllOffersWithPageByUser(Pageable pageable,User user);
-
-//    @EntityGraph(attributePaths = "offer")
-//    @Query("SELECT oi FROM OfferItem oi LEFT JOIN FETCH oi.offer WHERE oi.offer=: offerId ")
-//    Optional<Offer> findByOfferId(@Param("offerId") Long id);
+    @EntityGraph(attributePaths = "offer")
+    @Query("SELECT oi FROM OfferItem oi LEFT JOIN FETCH oi.offer WHERE oi.offer=: offerId ")
+    Optional<Offer> findByOfferId(@Param("offerId") Long id);
 
     Boolean existsByCode(String code);
 
     @Query("SELECT COUNT(o) FROM Offer o WHERE o.createAt >= :startTime")
     long numberOfOffersPerDay(@Param("startTime") LocalDateTime startTime);
 
-    @Modifying
-    @Query("UPDATE Offer o SET o.grandTotal = :grandTotal WHERE o.id = :offerId")
-    void updateGrandTotal(@Param("offerId") Long offerId,@Param("grandTotal") Double grandTotal);
+
+
 }

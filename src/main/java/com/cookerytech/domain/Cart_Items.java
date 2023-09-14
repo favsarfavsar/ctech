@@ -22,20 +22,20 @@ public class Cart_Items {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "cart_id", nullable = false)
+    @JoinColumn(name = "cart_id", nullable = false, unique = true)
     private Cart cart;
 
-
+    //(cascade = CascadeType.REMOVE)
     @ManyToOne
     @JoinColumn(name = "product_id", referencedColumnName = "id")
-    private Product product;
+    private Product productId;
 
     @ManyToOne
     @JoinColumn(name = "model_id", referencedColumnName = "id")
-    private Model model;
+    private Model modelId;
 
     @Column(nullable = false)
-    private Integer amount;
+    private Double amount;
 
     @Column(nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
