@@ -7,9 +7,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://snuffleupagus.db.elephantsql.com:5432/qlmucpfw
-    username: qlmucpfw
-    password: 3hGyBW4lXWY13D5pIbaAk6x82xLgwrFj
+    url: jdbc:postgresql://dpg-ck1pac703lhc73brc5a0-a.oregon-postgres.render.com:5432/postgresql_21po
+    username: postgresql_21po_user
+    password: cWxjqfvMN1zstGEip0KxbbGv2SP5TJOf
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
