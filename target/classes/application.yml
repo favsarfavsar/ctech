@@ -7,9 +7,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/cookerytech_db
-    username: db_user
-    password: db_password
+    url: jdbc:postgresql://snuffleupagus.db.elephantsql.com:5432/qlmucpfw
+    username: qlmucpfw
+    password: 3hGyBW4lXWY13D5pIbaAk6x82xLgwrFj
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -46,7 +46,7 @@ logging:
   level:
     '[org.springframework.web]' : WARN
     '[org.hibernate]' : INFO
-    '[com.saferent]' : DEBUG
+    '[com.cookerytech]' : DEBUG
 management: #actuator
   endpoints:
     web:
